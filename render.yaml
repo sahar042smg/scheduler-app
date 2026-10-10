@@ -3,8 +3,15 @@
 # «استقرار (Deployment)» آمده است.
 #
 # نکته: چون سرویس‌های پلن رایگان Render دیسک دائمی و دسترسی Shell
-# ندارند، دیتابیس باید یک Postgres خارجیِ رایگان (مثلا Neon) باشد و
-# حساب مدیر هم با متغیر محیطی ساخته می‌شود، نه با اجرای دستی اسکریپت.
+# ندارند، از دیتابیس رایگان خودِ Render (Postgres) استفاده می‌شود
+# (پایین همین فایل، بخش databases) و حساب مدیر هم با متغیر محیطی
+# ساخته می‌شود، نه با اجرای دستی اسکریپت.
+#
+# نکته‌ی مهم درباره‌ی دیتابیس رایگان Render: این دیتابیس ۳۰ روز بعد از
+# ساخته‌شدن منقضی می‌شود؛ برای ادامه‌ی کار باید قبل از آن تاریخ یکی از
+# کارهای زیر را انجام دهید: (۱) آن را به یک پلن پولی ارتقا دهید، یا
+# (۲) یک دیتابیس رایگان جدید بسازید و آدرسش را در Environment سرویس
+# scheduler-backend جایگزین کنید (داده‌های قبلی با این روش پاک می‌شوند).
 services:
   # --- بک‌اند: FastAPI + OR-Tools، به‌صورت کانتینر داکر ---
   - type: web
@@ -19,10 +26,12 @@ services:
         generateValue: true
       - key: CORS_ORIGINS
         value: https://scheduler-frontend.onrender.com
-      # آدرس اتصال Postgres خارجی (مثلا از Neon) — بعد از ساخته‌شدن
-      # سرویس، دستی در داشبورد Render وارد کنید (Environment).
+      # آدرس اتصال دیتابیس به‌طور خودکار از سرویس scheduler-db (پایین
+      # همین فایل) گرفته می‌شود — نیازی به وارد کردن دستی نیست.
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: scheduler-db
+          property: connectionString
       # اگر این دو مقدار را وارد کنید، سرویس هنگام بالا آمدن یک حساب
       # مدیر خودکار می‌سازد (چون Shell در پلن رایگان در دسترس نیست).
       - key: INITIAL_ADMIN_EMAIL
@@ -43,3 +52,9 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
+
+databases:
+  - name: scheduler-db
+    plan: free
+    databaseName: scheduler
+    user: scheduler
