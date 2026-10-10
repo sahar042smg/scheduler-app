@@ -46,11 +46,17 @@ class Settings(BaseSettings):
         """
         برخی سرویس‌ها (از جمله بعضی ارائه‌دهنده‌های Postgres) آدرس را با
         پیشوند قدیمی postgres:// می‌دهند که SQLAlchemy دیگر آن را
-        نمی‌پذیرد؛ اینجا به‌صورت خودکار به postgresql:// تبدیل می‌شود.
+        نمی‌پذیرد؛ اینجا به‌صورت خودکار به postgresql+psycopg2:// تبدیل
+        می‌شود. درایور را صریحا psycopg2 مشخص می‌کنیم (نه فقط
+        postgresql://) چون در غیر این صورت SQLAlchemy ممکن است به‌طور
+        پیش‌فرض بخواهد درایور دیگری (psycopg نسخه‌ی ۳) را امتحان کند که
+        در requirements.txt نصب نشده است.
         """
         url = self.database_url
         if url.startswith("postgres://"):
             url = "postgresql://" + url[len("postgres://"):]
+        if url.startswith("postgresql://"):
+            url = "postgresql+psycopg2://" + url[len("postgresql://"):]
         return url
 
     # اگر این دو مقدار ست شوند، برنامه هنگام بالا آمدن (در صورت نبودِ
