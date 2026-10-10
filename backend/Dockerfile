@@ -12,10 +12,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 
-# دیتابیس SQLite روی یک دیسک دائمی (persistent disk) نگه داشته می‌شود
-# تا با هر دیپلوی جدید حساب‌های کاربری پاک نشوند — نگاه کنید به render.yaml.
-ENV DATABASE_URL=sqlite:////data/scheduler.db
-RUN mkdir -p /data
+# DATABASE_URL از متغیر محیطی تزریق می‌شود (در Render به یک دیتابیس
+# Postgres خارجی مثل Neon وصل می‌شود تا داده با هر ری‌استارت پاک
+# نشود — دیسک این سرویس دائمی نیست). پیش‌فرض پایین فقط برای جلوگیری
+# از کرش احتمالی است؛ در عمل همیشه باید override شود.
+ENV DATABASE_URL=sqlite:///./scheduler.db
 
 EXPOSE 8000
 

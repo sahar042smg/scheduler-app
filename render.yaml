@@ -1,6 +1,10 @@
 # Render Blueprint — این فایل هر دو سرویس (بک‌اند و فرانت‌اند) را با یک
 # کلیک روی render.com می‌سازد. راهنمای کامل مراحل در README.md بخش
 # «استقرار (Deployment)» آمده است.
+#
+# نکته: چون سرویس‌های پلن رایگان Render دیسک دائمی و دسترسی Shell
+# ندارند، دیتابیس باید یک Postgres خارجیِ رایگان (مثلا Neon) باشد و
+# حساب مدیر هم با متغیر محیطی ساخته می‌شود، نه با اجرای دستی اسکریپت.
 services:
   # --- بک‌اند: FastAPI + OR-Tools، به‌صورت کانتینر داکر ---
   - type: web
@@ -10,17 +14,21 @@ services:
     dockerContext: ./backend
     plan: free
     healthCheckPath: /api/health
-    disk:
-      name: scheduler-data
-      mountPath: /data
-      sizeGB: 1
     envVars:
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
         value: https://scheduler-frontend.onrender.com
+      # آدرس اتصال Postgres خارجی (مثلا از Neon) — بعد از ساخته‌شدن
+      # سرویس، دستی در داشبورد Render وارد کنید (Environment).
       - key: DATABASE_URL
-        value: sqlite:////data/scheduler.db
+        sync: false
+      # اگر این دو مقدار را وارد کنید، سرویس هنگام بالا آمدن یک حساب
+      # مدیر خودکار می‌سازد (چون Shell در پلن رایگان در دسترس نیست).
+      - key: INITIAL_ADMIN_EMAIL
+        sync: false
+      - key: INITIAL_ADMIN_PASSWORD
+        sync: false
 
   # --- فرانت‌اند: ساخت استاتیک React/Vite ---
   - type: web

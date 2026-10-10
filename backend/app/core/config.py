@@ -41,6 +41,25 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite:///./scheduler.db"
 
+    @property
+    def sqlalchemy_database_url(self) -> str:
+        """
+        برخی سرویس‌ها (از جمله بعضی ارائه‌دهنده‌های Postgres) آدرس را با
+        پیشوند قدیمی postgres:// می‌دهند که SQLAlchemy دیگر آن را
+        نمی‌پذیرد؛ اینجا به‌صورت خودکار به postgresql:// تبدیل می‌شود.
+        """
+        url = self.database_url
+        if url.startswith("postgres://"):
+            url = "postgresql://" + url[len("postgres://"):]
+        return url
+
+    # اگر این دو مقدار ست شوند، برنامه هنگام بالا آمدن (در صورت نبودِ
+    # هیچ مدیری در دیتابیس) یک حساب مدیر خودکار می‌سازد. این برای
+    # محیط‌هایی (مثل پلن رایگان Render) که دسترسی Shell ندارند لازم است
+    # — نگاه کنید به app/main.py.
+    initial_admin_email: str | None = None
+    initial_admin_password: str | None = None
+
     # دامنه‌(های) فرانت‌اند که اجازه‌ی دسترسی CORS دارند؛ با کاما جدا شوند.
     # در توسعه‌ی محلی، ویت روی 5173 اجرا می‌شود. در استقرار، این مقدار باید
     # از طریق متغیر محیطی CORS_ORIGINS به آدرس واقعی فرانت‌اند تغییر کند.
